@@ -26,8 +26,8 @@ h2 { margin-top: 0; }
   margin-bottom: 20px;
 }
 
-button, select {
-  padding: 10px;
+button, select, input {
+  padding: 8px;
   font-size: 15px;
   min-height: 44px;
   border-radius: 8px;
@@ -60,6 +60,15 @@ button.active {
   margin-bottom: 4px;
 }
 
+.chore-input, .chore-select {
+  font-size: 14px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  margin-bottom: 4px;
+  width: 100%;
+}
+
 /* Responsive text adjustments */
 @media (max-width: 768px) {
   .person-name { font-size: 18px; }
@@ -73,37 +82,48 @@ button.active {
 
 <script type="text/babel">
 const peopleList = ["Andy","Gabe","Gui","Julia","Nico"];
+const frequencyOptions = ["Daily","Weekly"];
 
 function App(){
 
   const [view,setView] = React.useState("All");
   const [selectedPerson,setSelectedPerson] = React.useState("All");
+  const [editMode,setEditMode] = React.useState(false);
 
-  const [chores] = React.useState([
-    {frequency:"Daily",area:"Dining",chore:"clear and wipe table after dinner",assigned:"Gabe",difficulty:"Easy"},
+  const [chores,setChores] = React.useState([
     {frequency:"Daily",area:"Kitchen",chore:"clear and wipe countertops + island",assigned:"Andy",difficulty:"Medium"},
-    {frequency:"Daily",area:"Kitchen",chore:"Load Dishes",assigned:"Gui",difficulty:"Easy"},
-    {frequency:"Daily",area:"Kitchen",chore:"sweep kitchen + dining + living room area",assigned:"Nico",difficulty:"Easy"},
+    {frequency:"Weekly",area:"All",chore:"Mop Kitchen Floor + Living Area + Upstairs",assigned:"Andy",difficulty:"Medium"},
+    {frequency:"Weekly",area:"Kitchen",chore:"Deep Clean Kitchen + Counter + Island",assigned:"Andy",difficulty:"Hard"},
+    {frequency:"Weekly",area:"All",chore:"Clean Window glass and trim",assigned:"Andy",difficulty:"Medium"},
+    {frequency:"Daily",area:"Dining",chore:"clear and wipe table after dinner",assigned:"Gabe",difficulty:"Easy"},
+    {frequency:"Weekly",area:"Pantry",chore:"Deep Clean and Organize Pantry + Laundry area",assigned:"Gabe",difficulty:"Easy"},
+    {frequency:"Daily",area:"Kitchen",chore:"Load Dishes + Set timer",assigned:"Gui",difficulty:"Easy"},
     {frequency:"Daily",area:"Kitchen",chore:"take trash / recycling out and line with clean bag",assigned:"Gui",difficulty:"Easy"},
-    {frequency:"Daily",area:"Kitchen",chore:"Unload Dishes",assigned:"Julia",difficulty:"Easy"},
     {frequency:"Daily",area:"Living",chore:"Tidying living room + clean couch, ottoman, bench",assigned:"Gui",difficulty:"Easy"},
+    {frequency:"Weekly",area:"Bathroom",chore:"Deep Clean Bathrooms",assigned:"Gui",difficulty:"Hard"},
+    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean blinds and Fans",assigned:"Gui",difficulty:"Medium"},
+    {frequency:"Daily",area:"Kitchen",chore:"Unload Dishes",assigned:"Julia",difficulty:"Easy"},
     {frequency:"Daily",area:"Outdoor",chore:"Feed Cash and Kitties",assigned:"Julia",difficulty:"Easy"},
     {frequency:"Daily",area:"Outdoor",chore:"Take Compost to Chickens + check their food",assigned:"Julia",difficulty:"Medium"},
-    {frequency:"Weekly",area:"All",chore:"Clean Window glass and trim",assigned:"Andy",difficulty:"Medium"},
-    {frequency:"Weekly",area:"All",chore:"Mop Kitchen Floor + Living Area + Upstairs",assigned:"Andy",difficulty:"Medium"},
-    {frequency:"Weekly",area:"Bathroom",chore:"Deep Clean Bathrooms",assigned:"Gui",difficulty:"Hard"},
-    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean all bedrooms",assigned:"Nico",difficulty:"Medium"},
-    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean blinds and Fans",assigned:"Gui",difficulty:"Medium"},
-    {frequency:"Weekly",area:"Kitchen",chore:"Deep Clean Kitchen + Counter + Island",assigned:"Andy",difficulty:"Hard"},
-    {frequency:"Weekly",area:"Pantry",chore:"Deep Clean and Organize Pantry + Laundry area",assigned:"Gabe",difficulty:"Easy"}
+    {frequency:"Daily",area:"Kitchen",chore:"sweep kitchen + dining + living room area",assigned:"Nico",difficulty:"Easy"},
+    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean all bedrooms",assigned:"Nico",difficulty:"Medium"}
   ]);
+
+  // Update chore field
+  const updateChore = (index, field, value) => {
+    const updated = [...chores];
+    updated[index][field] = value;
+    setChores(updated);
+  }
 
   // Determine which people to show
   const peopleToShow = selectedPerson==="All" ? peopleList : [selectedPerson];
 
   // Group chores by person and frequency
   const choresByPerson = peopleToShow.map(person => {
-    const filtered = chores.filter(c => c.assigned===person && (view==="All" || c.frequency===view));
+    const filtered = chores
+      .map((c,i) => ({...c, index:i}))
+      .filter(c => c.assigned===person && (view==="All" || c.frequency===view));
     const daily = filtered.filter(c=>c.frequency==="Daily");
     const weekly = filtered.filter(c=>c.frequency==="Weekly");
     return {person, daily, weekly};
@@ -111,6 +131,14 @@ function App(){
 
   return (
     <div>
+      {/* Header + Edit */}
+      <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:"16px", flexWrap:"wrap", gap:"10px"}}>
+        <h2 style={{margin:0}}>Chores</h2>
+        <button onClick={()=>setEditMode(!editMode)}>
+          {editMode ? "Done Editing" : "Edit"}
+        </button>
+      </div>
+
       {/* Tabs + Person Filter */}
       <div className="controls">
         <button onClick={()=>setView("All")} className={view==="All"?"active":""}>All</button>
@@ -118,7 +146,7 @@ function App(){
         <button onClick={()=>setView("Weekly")} className={view==="Weekly"?"active":""}>Weekly</button>
 
         <select value={selectedPerson} onChange={e=>setSelectedPerson(e.target.value)}>
-          <option value="All">Family</option>
+          <option value="All">All People</option>
           {peopleList.map(p=><option key={p}>{p}</option>)}
         </select>
       </div>
@@ -135,8 +163,26 @@ function App(){
             {(view==="All" || view==="Daily") && p.daily.length>0 && (
               <div>
                 {view==="All" && <div className="chore-frequency">Daily:</div>}
-                {p.daily.map((c,i) => (
-                  <div key={i} className="chore-item">{c.chore}</div>
+                {p.daily.map(c => (
+                  <div key={c.index} className="chore-item">
+                    {editMode ? (
+                      <>
+                        <input
+                          className="chore-input"
+                          value={c.chore}
+                          onChange={e=>updateChore(c.index,"chore",e.target.value)}
+                        />
+                        <select className="chore-select" value={c.assigned} onChange={e=>updateChore(c.index,"assigned",e.target.value)}>
+                          {peopleList.map(p=> <option key={p}>{p}</option>)}
+                        </select>
+                        <select className="chore-select" value={c.frequency} onChange={e=>updateChore(c.index,"frequency",e.target.value)}>
+                          {frequencyOptions.map(f=> <option key={f}>{f}</option>)}
+                        </select>
+                      </>
+                    ) : (
+                      c.chore
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -145,8 +191,26 @@ function App(){
             {(view==="All" || view==="Weekly") && p.weekly.length>0 && (
               <div>
                 {view==="All" && <div className="chore-frequency">Weekly:</div>}
-                {p.weekly.map((c,i) => (
-                  <div key={i} className="chore-item">{c.chore}</div>
+                {p.weekly.map(c => (
+                  <div key={c.index} className="chore-item">
+                    {editMode ? (
+                      <>
+                        <input
+                          className="chore-input"
+                          value={c.chore}
+                          onChange={e=>updateChore(c.index,"chore",e.target.value)}
+                        />
+                        <select className="chore-select" value={c.assigned} onChange={e=>updateChore(c.index,"assigned",e.target.value)}>
+                          {peopleList.map(p=> <option key={p}>{p}</option>)}
+                        </select>
+                        <select className="chore-select" value={c.frequency} onChange={e=>updateChore(c.index,"frequency",e.target.value)}>
+                          {frequencyOptions.map(f=> <option key={f}>{f}</option>)}
+                        </select>
+                      </>
+                    ) : (
+                      c.chore
+                    )}
+                  </div>
                 ))}
               </div>
             )}
