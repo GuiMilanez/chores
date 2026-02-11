@@ -1,432 +1,163 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chore Tracker</title>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Household Chore Tracker</title>
 
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <style>
-      body {
-        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-        margin: 0;
-        padding: 16px;
-        background: #f7f7f7;
-      }
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 16px;
+  background: #f7f7f7;
+}
 
-      h2 {
-        margin-top: 30px;
-      }
+h2 { margin-top: 0; }
 
-      .controls {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-bottom: 20px;
-      }
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
-      button,
-      select {
-        padding: 10px;
-        font-size: 15px;
-        min-height: 44px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        background: white;
-        cursor: pointer;
-      }
+button, select {
+  padding: 10px;
+  font-size: 15px;
+  min-height: 44px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: white;
+  cursor: pointer;
+}
 
-      button.active {
-        background: #007aff;
-        color: white;
-        border: none;
-      }
+button.active {
+  background: #007aff;
+  color: white;
+  border: none;
+}
 
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-      }
+.person-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: #007aff;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
 
-      th,
-      td {
-        border: 1px solid #e0e0e0;
-        padding: 10px;
-        font-size: 14px;
-      }
+.chore-frequency {
+  font-weight: bold;
+  margin-top: 12px;
+}
 
-      th {
-        background: #f2f2f2;
-        cursor: pointer;
-      }
+.chore-item {
+  margin-left: 12px;
+  margin-bottom: 4px;
+}
 
-      @media (max-width: 768px) {
-        table,
-        thead,
-        tbody,
-        th,
-        td,
-        tr {
-          display: block;
-        }
-        thead {
-          display: none;
-        }
+/* Responsive text adjustments */
+@media (max-width: 768px) {
+  .person-name { font-size: 18px; }
+  .chore-frequency { font-size: 16px; }
+  .chore-item { font-size: 14px; margin-left: 10px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
 
-        tr {
-          margin-bottom: 16px;
-          padding: 12px;
-          border-radius: 12px;
-          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-        }
+<script type="text/babel">
+const peopleList = ["Andy","Gabe","Gui","Julia","Nico"];
 
-        td {
-          border: none;
-          padding: 6px 0;
-        }
+function App(){
 
-        td::before {
-          content: attr(data-label);
-          font-weight: bold;
-          display: block;
-          font-size: 12px;
-          color: #666;
-          margin-bottom: 4px;
-        }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="root"></div>
+  const [view,setView] = React.useState("All");
+  const [selectedPerson,setSelectedPerson] = React.useState("All");
 
-    <script type="text/babel">
-      const difficultyScore = { Easy: 1, Medium: 2, Hard: 3 };
-      const peopleList = ["Andy", "Gabe", "Gui", "Julia", "Nico"];
+  const [chores] = React.useState([
+    {frequency:"Daily",area:"Dining",chore:"clear and wipe table after dinner",assigned:"Gabe",difficulty:"Easy"},
+    {frequency:"Daily",area:"Kitchen",chore:"clear and wipe countertops + island",assigned:"Andy",difficulty:"Medium"},
+    {frequency:"Daily",area:"Kitchen",chore:"Load Dishes",assigned:"Gui",difficulty:"Easy"},
+    {frequency:"Daily",area:"Kitchen",chore:"sweep kitchen + dining + living room area",assigned:"Nico",difficulty:"Easy"},
+    {frequency:"Daily",area:"Kitchen",chore:"take trash / recycling out and line with clean bag",assigned:"Gui",difficulty:"Easy"},
+    {frequency:"Daily",area:"Kitchen",chore:"Unload Dishes",assigned:"Julia",difficulty:"Easy"},
+    {frequency:"Daily",area:"Living",chore:"Tidying living room + clean couch, ottoman, bench",assigned:"Gui",difficulty:"Easy"},
+    {frequency:"Daily",area:"Outdoor",chore:"Feed Cash and Kitties",assigned:"Julia",difficulty:"Easy"},
+    {frequency:"Daily",area:"Outdoor",chore:"Take Compost to Chickens + check their food",assigned:"Julia",difficulty:"Medium"},
+    {frequency:"Weekly",area:"All",chore:"Clean Window glass and trim",assigned:"Andy",difficulty:"Medium"},
+    {frequency:"Weekly",area:"All",chore:"Mop Kitchen Floor + Living Area + Upstairs",assigned:"Andy",difficulty:"Medium"},
+    {frequency:"Weekly",area:"Bathroom",chore:"Deep Clean Bathrooms",assigned:"Gui",difficulty:"Hard"},
+    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean all bedrooms",assigned:"Nico",difficulty:"Medium"},
+    {frequency:"Weekly",area:"Bedroom",chore:"Deep Clean blinds and Fans",assigned:"Gui",difficulty:"Medium"},
+    {frequency:"Weekly",area:"Kitchen",chore:"Deep Clean Kitchen + Counter + Island",assigned:"Andy",difficulty:"Hard"},
+    {frequency:"Weekly",area:"Pantry",chore:"Deep Clean and Organize Pantry + Laundry area",assigned:"Gabe",difficulty:"Easy"}
+  ]);
 
-      function App() {
-        const [editMode, setEditMode] = React.useState(false);
-        const [view, setView] = React.useState("All");
-        const [selectedPerson, setSelectedPerson] = React.useState("All");
-        const [sortField, setSortField] = React.useState(null);
-        const [sortAsc, setSortAsc] = React.useState(true);
+  // Determine which people to show
+  const peopleToShow = selectedPerson==="All" ? peopleList : [selectedPerson];
 
-        const [chores, setChores] = React.useState([
-          {
-            frequency: "Daily",
-            area: "Dining",
-            chore: "clear and wipe table after dinner",
-            assigned: "Gabe",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Kitchen",
-            chore: "clear and wipe countertops + island",
-            assigned: "Andy",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Daily",
-            area: "Kitchen",
-            chore: "Load Dishes + Set timer",
-            assigned: "Gui",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Kitchen",
-            chore: "sweep kitchen + dining + living room area",
-            assigned: "Nico",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Kitchen",
-            chore: "take trash / recycling out and line with clean bag",
-            assigned: "Gui",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Kitchen",
-            chore: "Unload Dishes",
-            assigned: "Julia",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Living",
-            chore: "Tidying living room + clean couch, ottoman, bench",
-            assigned: "Gui",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Outdoor",
-            chore: "Feed Cash and Kitties",
-            assigned: "Julia",
-            difficulty: "Easy",
-          },
-          {
-            frequency: "Daily",
-            area: "Outdoor",
-            chore: "Take Compost to Chickens + check their food",
-            assigned: "Julia",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Weekly",
-            area: "All",
-            chore: "Clean Window glass and trim",
-            assigned: "Andy",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Weekly",
-            area: "All",
-            chore: "Mop Kitchen Floor + Living Area + Upstairs",
-            assigned: "Andy",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Weekly",
-            area: "Bathroom",
-            chore: "Deep Clean Bathrooms",
-            assigned: "Gui",
-            difficulty: "Hard",
-          },
-          {
-            frequency: "Weekly",
-            area: "Bedroom",
-            chore: "Deep Clean all bedrooms",
-            assigned: "Nico",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Weekly",
-            area: "Bedroom",
-            chore: "Deep Clean blinds and Fans",
-            assigned: "Gui",
-            difficulty: "Medium",
-          },
-          {
-            frequency: "Weekly",
-            area: "Kitchen",
-            chore: "Deep Clean Kitchen + Counter + Island",
-            assigned: "Andy",
-            difficulty: "Hard",
-          },
-          {
-            frequency: "Weekly",
-            area: "Pantry",
-            chore: "Deep Clean and Organize Pantry + Laundry area",
-            assigned: "Gabe",
-            difficulty: "Easy",
-          },
-        ]);
+  // Group chores by person and frequency
+  const choresByPerson = peopleToShow.map(person => {
+    const filtered = chores.filter(c => c.assigned===person && (view==="All" || c.frequency===view));
+    const daily = filtered.filter(c=>c.frequency==="Daily");
+    const weekly = filtered.filter(c=>c.frequency==="Weekly");
+    return {person, daily, weekly};
+  });
 
-        const updateChore = (i, field, value) => {
-          const updated = [...chores];
-          updated[i][field] = value;
-          setChores(updated);
-        };
+  return (
+    <div>
+      {/* Tabs + Person Filter */}
+      <div className="controls">
+        <button onClick={()=>setView("All")} className={view==="All"?"active":""}>All</button>
+        <button onClick={()=>setView("Daily")} className={view==="Daily"?"active":""}>Daily</button>
+        <button onClick={()=>setView("Weekly")} className={view==="Weekly"?"active":""}>Weekly</button>
 
-        const handleSort = (field) => {
-          if (sortField === field) {
-            setSortAsc(!sortAsc);
-          } else {
-            setSortField(field);
-            setSortAsc(true);
-          }
-        };
+        <select value={selectedPerson} onChange={e=>setSelectedPerson(e.target.value)}>
+          <option value="All">Family</option>
+          {peopleList.map(p=><option key={p}>{p}</option>)}
+        </select>
+      </div>
 
-        const filtered = chores.filter((c) => {
-          const freqMatch = view === "All" || c.frequency === view;
-          const personMatch =
-            selectedPerson === "All" || c.assigned === selectedPerson;
-          return freqMatch && personMatch;
-        });
-
-        const sorted = [...filtered].sort((a, b) => {
-          if (!sortField) return 0;
-          if (a[sortField] < b[sortField]) return sortAsc ? -1 : 1;
-          if (a[sortField] > b[sortField]) return sortAsc ? 1 : -1;
-          return 0;
-        });
-
-        const summary = peopleList.map((p) => {
-          const daily = chores.filter(
-            (c) => c.frequency === "Daily" && c.assigned === p,
-          );
-          const weekly = chores.filter(
-            (c) => c.frequency === "Weekly" && c.assigned === p,
-          );
-          const dailyLoad = daily.reduce(
-            (sum, c) => sum + difficultyScore[c.difficulty],
-            0,
-          );
-          return {
-            person: p,
-            daily: daily.length,
-            weekly: weekly.length,
-            dailyLoad,
-          };
-        });
-
-        const maxLoad = Math.max(...summary.map((s) => s.dailyLoad), 1);
+      {/* Display chores grouped by person */}
+      {choresByPerson.map((p) => {
+        if(p.daily.length===0 && p.weekly.length===0) return null;
 
         return (
-          <div>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
-              }}
-            >
-              <h2 style={{ margin: 0 }}>Chores</h2>
+          <div key={p.person}>
+            <div className="person-name">{p.person}</div>
 
-              <button onClick={() => setEditMode(!editMode)}>
-                {editMode ? "Done Editing" : "Edit"}
-              </button>
-            </div>
-
-            <div className="controls">
-              <button
-                onClick={() => setView("All")}
-                className={view === "All" ? "active" : ""}
-              >
-                All
-              </button>
-              <button
-                onClick={() => setView("Daily")}
-                className={view === "Daily" ? "active" : ""}
-              >
-                Daily
-              </button>
-              <button
-                onClick={() => setView("Weekly")}
-                className={view === "Weekly" ? "active" : ""}
-              >
-                Weekly
-              </button>
-
-              <select
-                value={selectedPerson}
-                onChange={(e) => setSelectedPerson(e.target.value)}
-              >
-                <option value="All">All People</option>
-                {peopleList.map((p) => (
-                  <option key={p}>{p}</option>
+            {/* Daily chores */}
+            {(view==="All" || view==="Daily") && p.daily.length>0 && (
+              <div>
+                {view==="All" && <div className="chore-frequency">Daily:</div>}
+                {p.daily.map((c,i) => (
+                  <div key={i} className="chore-item">{c.chore}</div>
                 ))}
-              </select>
-            </div>
+              </div>
+            )}
 
-            <table>
-              <thead>
-                <tr>
-                  <th onClick={() => handleSort("area")}>Area</th>
-                  <th>Chore</th>
-                  <th onClick={() => handleSort("assigned")}>Assigned</th>
-                  <th>Frequency</th>
-                  <th>Difficulty</th>
-                </tr>
-              </thead>
-              <tbody>
-                {sorted.map((c, i) => (
-                  <tr key={i}>
-                    <td data-label="Area">{c.area}</td>
-                    <td data-label="Chore">{c.chore}</td>
-
-                    <td data-label="Assigned">
-                      {editMode ? (
-                        <select
-                          value={c.assigned}
-                          onChange={(e) =>
-                            updateChore(i, "assigned", e.target.value)
-                          }
-                        >
-                          {peopleList.map((p) => (
-                            <option key={p}>{p}</option>
-                          ))}
-                        </select>
-                      ) : (
-                        c.assigned
-                      )}
-                    </td>
-
-                    <td data-label="Frequency">
-                      {editMode ? (
-                        <select
-                          value={c.frequency}
-                          onChange={(e) =>
-                            updateChore(i, "frequency", e.target.value)
-                          }
-                        >
-                          <option>Daily</option>
-                          <option>Weekly</option>
-                        </select>
-                      ) : (
-                        c.frequency
-                      )}
-                    </td>
-
-                    <td data-label="Difficulty">
-                      {editMode ? (
-                        <select
-                          value={c.difficulty}
-                          onChange={(e) =>
-                            updateChore(i, "difficulty", e.target.value)
-                          }
-                        >
-                          <option>Easy</option>
-                          <option>Medium</option>
-                          <option>Hard</option>
-                        </select>
-                      ) : (
-                        c.difficulty
-                      )}
-                    </td>
-                  </tr>
+            {/* Weekly chores */}
+            {(view==="All" || view==="Weekly") && p.weekly.length>0 && (
+              <div>
+                {view==="All" && <div className="chore-frequency">Weekly:</div>}
+                {p.weekly.map((c,i) => (
+                  <div key={i} className="chore-item">{c.chore}</div>
                 ))}
-              </tbody>
-            </table>
-
-            <h2>Summary</h2>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>Person</th>
-                  <th>Daily</th>
-                  <th>Weekly</th>
-                  <th>Daily Load</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.map((s, i) => {
-                  const intensity = s.dailyLoad / maxLoad;
-                  const color = `rgba(255,59,48,${intensity})`;
-                  return (
-                    <tr key={i}>
-                      <td>{s.person}</td>
-                      <td>{s.daily}</td>
-                      <td>{s.weekly}</td>
-                      <td style={{ backgroundColor: color }}>{s.dailyLoad}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+              </div>
+            )}
           </div>
         );
-      }
+      })}
+    </div>
+  )
+}
 
-      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-    </script>
-  </body>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
 </html>
