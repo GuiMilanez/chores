@@ -146,7 +146,7 @@ function App(){
         <button onClick={()=>setView("Weekly")} className={view==="Weekly"?"active":""}>Weekly</button>
 
         <select value={selectedPerson} onChange={e=>setSelectedPerson(e.target.value)}>
-          <option value="All">All People</option>
+          <option value="All">Family</option>
           {peopleList.map(p=><option key={p}>{p}</option>)}
         </select>
       </div>
@@ -225,4 +225,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 </script>
 </body>
 </html>
+
 
